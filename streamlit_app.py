@@ -7,55 +7,104 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 
 # 페이지 설정
-st.set_page_config(page_title="멈추지 않는 에어컨과 해수면 상승", layout="wide")
+st.set_page_config(
+    page_title="멈추지 않는 에어컨과 해수면 상승",
+    layout="wide"
+)
 
-# -----------------------------------
-# 서론
-# -----------------------------------
-st.title("❄️ 멈추지 않는 에어컨과 해수면 상승: 과한 에어컨 사용에 의한 해수온, 해수면 높이 상승이 우리 삶에 미치는 영향")
+# ----------------------------
+# 제목 & 서론
+# ----------------------------
+st.title("❄️ 멈추지 않는 에어컨과 해수면 상승")
+st.subheader("과한 에어컨 사용에 의한 해수온, 해수면 높이 상승이 우리 삶에 미치는 영향")
 
-st.subheader("서론")
 st.markdown("""
-여름마다 우리는 습관처럼 에어컨을 켠다. 기숙사에서, 교실에서, 집에서 심지어 이불을 덮고 에어컨을 켠 채 잠드는 모습도 흔하다.  
-그러나 이 편리한 습관이 바다와 연결되어 있다는 사실은 잘 인식되지 않는다.  
-
+여름마다 우리는 습관처럼 에어컨을 켠다. 그러나 이 편리한 습관이 바다와 연결되어 있다는 사실은 잘 인식되지 않는다.  
 무분별한 전기 사용은 온실가스 배출을 가속화하고, 이는 결국 지구 평균 기온 상승과 해수면 상승으로 이어진다.  
-이미 해수온 상승은 빠르게 진행되고 있고, 해수면은 매년 꾸준히 높아지고 있다.  
 
-이 변화는 단순히 과학 뉴스 속 이야기가 아니라, 우리가 여름에 떠나는 피서지와 미래의 생활 공간을 위협하는 실질적 문제다.  
-따라서 우리는 에어컨 사용과 해수면 상승의 연관성을 데이터로 확인하고, 청소년으로서 어떤 실천을 할 수 있을지 탐구할 필요가 있다.
+이미 해수온 상승은 빠르게 진행 중이며, 해수면은 매년 꾸준히 높아지고 있다.  
+이 변화는 우리가 여름에 떠나는 피서지와 미래의 생활 공간을 위협하는 실질적 문제다.  
+
+따라서 우리는 **에어컨 사용과 해수면 상승의 연관성을 데이터로 확인**하고,  
+**청소년으로서 어떤 실천을 할 수 있을지 탐구**할 필요가 있다.
 """)
 
-# -----------------------------------
-# Tabs
-# -----------------------------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+# ----------------------------
+# 데이터 준비
+# ----------------------------
+years = list(range(1993, 2024))
+levels = [
+    0.0, 2.4, 4.5, 6.3, 8.2, 10.4, 12.5, 14.1, 16.3, 18.2,
+    20.4, 22.1, 24.5, 26.8, 29.3, 31.1, 33.6, 36.1, 38.4, 41.0,
+    43.2, 46.0, 48.5, 51.0, 54.2, 56.9, 59.5, 62.0, 65.1, 67.4,
+    68.9
+]
+sea_df = pd.DataFrame({"연도": years, "해수면 상승(mm)": levels})
+
+cities = [
+    {"city": "서울", "lat": 37.5665, "lon": 126.9780},
+    {"city": "부산", "lat": 35.1796, "lon": 129.0756},
+    {"city": "도쿄", "lat": 35.6762, "lon": 139.6503},
+    {"city": "상하이", "lat": 31.2304, "lon": 121.4737},
+    {"city": "자카르타", "lat": -6.2088, "lon": 106.8456},
+    {"city": "런던", "lat": 51.5074, "lon": -0.1278},
+    {"city": "암스테르담", "lat": 52.3676, "lon": 4.9041},
+    {"city": "뉴욕", "lat": 40.7128, "lon": -74.0060},
+    {"city": "마이애미", "lat": 25.7617, "lon": -80.1918},
+    {"city": "리우데자네이루", "lat": -22.9068, "lon": -43.1729},
+    {"city": "케이프타운", "lat": -33.9249, "lon": 18.4241},
+    {"city": "시드니", "lat": -33.8688, "lon": 151.2093}
+]
+
+tourism_risks = {
+    "한국": "인천·김포 저지대 침수로 김포공항 접근 불가, 부산 해운대와 광안리 관광지 침수 위험, 제주 해안 관광지 축소 우려.",
+    "일본": "도쿄 디즈니랜드와 오다이바 침수 위험, 요코하마 항구 일부 기능 상실, 오사카 만 지역 주요 상업시설 침수.",
+    "중국": "상하이 와이탄 관광지 침수, 푸둥 금융 지구 접근 차단, 항저우 만 일대 농경지 손실.",
+    "미국": "뉴욕 자유의 여신상 주변 침수, 마이애미 비치 절반 이상 사라짐, 뉴올리언스 도심 기능 상실.",
+    "네덜란드": "암스테르담 운하 지대 침수, 로테르담 항구 기능 저하, 튤립 농업지대 피해 확대.",
+    "인도네시아": "자카르타 도심 1/3 이상 침수, 주요 도로 교통 마비, 항만 기능 마비.",
+    "영국": "런던 템스강 수위 상승으로 시티 금융가 침수 위협, 웨스트민스터 궁전 침수 우려, 관광산업 큰 타격.",
+    "호주": "시드니 오페라하우스 주변 침수, 본다이 비치 해안선 후퇴, 항구 도시 기반시설 손상.",
+    "브라질": "리우 코파카바나 해변 침수, 슈거로프 마운틴 관광지 접근 제한, 리우 항만 물류 기능 위축.",
+    "남아프리카공화국": "케이프타운 워터프런트 침수, 어업과 관광산업 피해, 해안 주거지 상실 위험."
+}
+
+# 색상 매핑
+norm = colors.Normalize(vmin=0, vmax=max(levels))
+cmap = cm.get_cmap('RdYlBu_r')
+def get_color(value):
+    rgba = cmap(norm(value))
+    return colors.to_hex(rgba)
+
+legend_html = """
+<div style="position: fixed; bottom: 40px; left: 40px; width: 220px; height: 140px; 
+     border:2px solid grey; z-index:9999; font-size:14px;
+     background-color:white; padding: 10px;">
+<b>🌊 해수면 상승 위험도</b><br>
+<span style='color:#08306b;'>●</span> 낮음 (0~20mm)<br>
+<span style='color:#2b8cbe;'>●</span> 보통 (20~40mm)<br>
+<span style='color:#fdae61;'>●</span> 높음 (40~60mm)<br>
+<span style='color:#d73027;'>●</span> 매우 높음 (60mm 이상)
+</div>
+"""
+
+# ----------------------------
+# 본론 - 탭 구성
+# ----------------------------
+st.header("📊 분석 시각화")
+tab1, tab2, tab3 = st.tabs([
     "📈 해수면 상승 추이",
-    "🗺️ 세계 도시 위험도",
-    "🔥 폭염과 학습 환경",
-    "💨 에어컨 시뮬레이션",
-    "📌 결론 및 제언"
+    "🗺️ 연도별 도시 위험도 지도",
+    "💨 에어컨 시뮬레이션"
 ])
 
-# -------------------------------
-# Tab 1: 해수면 상승 추이
-# -------------------------------
+# Tab1
 with tab1:
-    years = list(range(1993, 2024))
-    levels = [
-        0.0, 2.4, 4.5, 6.3, 8.2, 10.4, 12.5, 14.1, 16.3, 18.2,
-        20.4, 22.1, 24.5, 26.8, 29.3, 31.1, 33.6, 36.1, 38.4, 41.0,
-        43.2, 46.0, 48.5, 51.0, 54.2, 56.9, 59.5, 62.0, 65.1, 67.4,
-        68.9
-    ]
-    sea_df = pd.DataFrame({"연도": years, "해수면 상승(mm)": levels})
-
+    st.subheader("전 세계 해수면 상승 추이 (1993~2023)")
     col1, col2 = st.columns([1, 5])
     with col1:
-        st.markdown("### 연도 선택")
         start_year = st.selectbox("시작 연도", options=years, index=years.index(2010))
         end_year = st.selectbox("종료 연도", options=years, index=len(years)-1)
-
     if start_year > end_year:
         st.warning("❗ 시작 연도가 종료 연도보다 클 수 없습니다.")
     else:
@@ -63,175 +112,108 @@ with tab1:
         with col2:
             fig = go.Figure()
             fig.add_trace(go.Scatter(
-                x=filtered_df["연도"],
-                y=filtered_df["해수면 상승(mm)"],
-                mode='lines+markers',
-                line=dict(color='royalblue'),
-                marker=dict(size=8)
+                x=filtered_df["연도"], y=filtered_df["해수면 상승(mm)"],
+                mode='lines+markers', line=dict(color='royalblue'), marker=dict(size=8)
             ))
             fig.update_layout(
                 title=f"{start_year}년 ~ {end_year}년 해수면 상승 추이",
-                xaxis_title="연도",
-                yaxis_title="해수면 상승 (mm)",
-                height=500
+                xaxis_title="연도", yaxis_title="해수면 상승 (mm)", height=500
             )
             st.plotly_chart(fig, use_container_width=True)
+    st.markdown("> ✅ **출처**: NASA Global Mean Sea Level (1993–2023)")
 
-    st.markdown("> ✅ **출처**: [NASA Global Mean Sea Level (1993–2023)](https://climate.nasa.gov/vital-signs/sea-level/)")
-
-    st.subheader("🔎 분석 및 시사점")
-    st.markdown("""
-    지난 30년 동안 해수면은 꾸준히 상승하고 있으며, 단순한 자연 변동이 아니라 인류 활동에 의한 기후변화의 직접적 결과임을 보여줍니다.  
-    특히 2010년 이후 상승 속도가 더욱 가팔라져, 앞으로 해안 도시와 관광지의 생존 가능성에 큰 위협이 되고 있습니다.  
-
-    이는 우리가 **에어컨 사용과 같은 일상적 습관을 바꾸지 않는다면** 머지않아 여름휴가를 떠나는 해변이나 도시는 더 이상 안전한 공간이 아닐 수 있음을 의미합니다.  
-    """)
-
-# -------------------------------
-# Tab 2: 세계 도시 위험도
-# -------------------------------
+# Tab2
 with tab2:
-    selected_year = st.slider("🌍 지도에 표시할 연도 선택", min_value=1993, max_value=2023, value=2015)
-    selected_level = sea_df.loc[sea_df["연도"] == selected_year, "해수면 상승(mm)"].values[0]
+    st.subheader("연도별 세계 도시 해수면 위험도")
+    map_year = st.sidebar.slider("🌍 지도에 표시할 연도 선택", min_value=1993, max_value=2023, value=2015)
+    selected_country = st.sidebar.selectbox("나라 선택", list(tourism_risks.keys()))
+    selected_level = sea_df.loc[sea_df["연도"] == map_year, "해수면 상승(mm)"].values[0]
+    m = folium.Map(location=[20, 0], zoom_start=2)
+    for city in cities:
+        color = get_color(selected_level)
+        folium.CircleMarker(
+            location=[city["lat"], city["lon"]], radius=10,
+            color=color, fill=True, fill_color=color, fill_opacity=0.8,
+            popup=f"{city['city']}<br>해수면 상승: {selected_level:.1f} mm"
+        ).add_to(m)
+    m.get_root().html.add_child(folium.Element(legend_html))
+    st_folium(m, width=900, height=550)
+    st.info(f"{selected_country}: {tourism_risks[selected_country]}")
 
-    cities = [
-        {"city": "부산 (해운대)", "lat": 35.1796, "lon": 129.0756,
-         "img_now": "https://upload.wikimedia.org/wikipedia/commons/5/55/Haeundae_Beach_May_2024.jpg",
-         "img_future": "https://dummyimage.com/800x400/4682b4/ffffff.png&text=부산+해운대+침수+예측"},
-        {"city": "자카르타", "lat": -6.2088, "lon": 106.8456,
-         "img_now": "https://upload.wikimedia.org/wikipedia/commons/9/99/Jakarta_skyline.jpg",
-         "img_future": "https://dummyimage.com/800x400/ff6347/ffffff.png&text=자카르타+침수+예측"},
-        {"city": "마이애미", "lat": 25.7617, "lon": -80.1918,
-         "img_now": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Miami_Beach_aerial_2017.jpg",
-         "img_future": "https://dummyimage.com/800x400/2e8b57/ffffff.png&text=마이애미+침수+예측"},
-        {"city": "암스테르담", "lat": 52.3676, "lon": 4.9041,
-         "img_now": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Amsterdam_Canal_Panorama_2018.jpg",
-         "img_future": "https://dummyimage.com/800x400/daa520/ffffff.png&text=암스테르담+침수+예측"},
-    ]
-
-    norm = colors.Normalize(vmin=0, vmax=max(levels))
-    cmap = cm.get_cmap('RdYlBu_r')
-    def get_color(value):
-        rgba = cmap(norm(value))
-        return colors.to_hex(rgba)
-
-    col1, col2 = st.columns([2, 3])
-    with col1:
-        st.markdown("### 도시 선택")
-        city_names = [c["city"] for c in cities]
-        selected_city = st.selectbox("위험도 확인할 도시 선택", options=city_names)
-
-        city_info = next(c for c in cities if c["city"] == selected_city)
-        st.image(city_info["img_now"], caption=f"현재 {city_info['city']} 모습")
-        st.image(city_info["img_future"], caption=f"{selected_city} 침수 예측 (참고 이미지)")
-
-    with col2:
-        m = folium.Map(location=[20, 0], zoom_start=2)
-        for city in cities:
-            color = get_color(selected_level)
-            folium.CircleMarker(
-                location=[city["lat"], city["lon"]],
-                radius=10,
-                color=color,
-                fill=True,
-                fill_color=color,
-                fill_opacity=0.8,
-                popup=f"{city['city']}<br>해수면 상승: {selected_level:.1f} mm"
-            ).add_to(m)
-
-        legend_html = """
-        <div style="position: fixed; 
-             bottom: 40px; left: 40px; width: 200px; height: 140px; 
-             border:2px solid grey; z-index:9999; font-size:14px;
-             background-color:white; padding: 10px;">
-        <b>🌊 해수면 상승 위험도</b><br>
-        <span style='color:#08306b;'>●</span> 낮음 (0~20mm)<br>
-        <span style='color:#2b8cbe;'>●</span> 보통 (20~40mm)<br>
-        <span style='color:#fdae61;'>●</span> 높음 (40~60mm)<br>
-        <span style='color:#d73027;'>●</span> 매우 높음 (60mm 이상)
-        </div>
-        """
-        m.get_root().html.add_child(folium.Element(legend_html))
-        st_data = st_folium(m, width=700, height=500)
-
-    st.subheader("🔎 분석 및 시사점")
-    st.markdown("""
-    해수면 상승은 단순히 과학 보고서 속 수치가 아니라, 세계 주요 해안 도시와 관광지에 직접적인 위협을 줍니다.  
-    - **부산 해운대**: 대표적 해수욕장으로, 침수 시 지역 경제와 관광산업 직격탄.  
-    - **자카르타**: 이미 도시 일부가 침수되고 있어, 인도네시아 수도 이전 논의까지 진행 중.  
-    - **마이애미**: 세계적 휴양지이자 미국 남부 경제 중심지, 해수면 상승에 매우 취약.  
-    - **암스테르담**: 운하 도시로서, 제방 붕괴 시 도시 전역이 물에 잠길 위험.  
-
-    여러분의 **가벼운 에어컨 사용 습관 하나가**, 단순히 집 전기요금이 아니라  
-    미래에 우리가 즐길 수 있는 **휴양지와 여행지의 생존 여부**와 직결됩니다.  
-    """)
-
-# -------------------------------
-# Tab 3: 폭염과 학습 환경
-# -------------------------------
+# Tab3
 with tab3:
-    st.markdown("""
-    ### 🔹 폭염과 학습 집중력
-    - 기온 1도 상승 → **집중력 10% 감소**  
-    - 폭염 시 **학업 성취도 평균 15% 하락**  
-    - 실내 온도 28도 초과 시, **인지 능력 저하** 급격히 증가  
+    st.subheader("에어컨의 역설: 간단한 소비/배출 시뮬레이터")
+    st.sidebar.subheader("에어컨 사용량 입력")
+    hours_per_day = st.sidebar.slider("하루 사용 시간 (시간)", 1, 24, 5)
+    days_used = st.sidebar.slider("사용 일수 (일)", 1, 365, 150)
+    power_per_hour = 1.5
+    co2_per_kwh = 0.4
+    total_energy = hours_per_day * days_used * power_per_hour
+    total_co2 = total_energy * co2_per_kwh
+    st.metric("총 전력 소비량 (kWh)", f"{total_energy:,.0f}")
+    st.metric("총 CO₂ 배출량 (kg)", f"{total_co2:,.0f}")
+    if total_co2 < 50:
+        risk_level, color = "안전", "green"
+    elif total_co2 < 150:
+        risk_level, color = "주의", "yellow"
+    elif total_co2 < 300:
+        risk_level, color = "위험", "orange"
+    else:
+        risk_level, color = "심각", "red"
+    st.markdown(f"<h3 style='color:{color}'>위험도: {risk_level}</h3>", unsafe_allow_html=True)
 
-    > 💬 *"폭염 날씨에는 쉬는 시간 후 교실에 들어가는 것만으로도 숨이 막혀요"* – 고등학생 인터뷰
-    """)
+# ----------------------------
+# 보고서 + 체크리스트 (탭 끝난 뒤 한 번만)
+# ----------------------------
+st.markdown("""
+## 본론 1  
+전력 소비는 단순한 숫자가 아니라 바다와 직결된다. 에어컨을 오래 켤수록 발전소는 더 많은 화석연료를 태우고, 이 과정에서 나온 이산화탄소는 지구의 온도를 끌어올린다.  
+온도가 오르면 해수는 팽창하고, 극지방 빙하는 녹아 바다 수위는 점점 높아진다.  
+즉, 우리가 방 안에서 버튼 하나로 시원함을 택할 때마다, 바닷가는 한 걸음씩 우리 땅을 향해 다가오고 있는 것이다.  
 
-# -------------------------------
-# Tab 4: 에어컨 시뮬레이션
-# -------------------------------
-with tab4:
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        st.markdown("### 시뮬레이션 옵션")
-        hours = st.slider("하루 평균 사용 시간 (시간)", 0, 24, 6)
-        days = st.slider("총 사용 일수 (일)", 1, 90, 30)
+## 본론 2  
+실제 데이터는 이를 뒷받침한다. 1993년부터 꾸준히 상승해 온 해수면은 이미 수십 mm나 올랐다.  
+도시별 지도를 보면 세계의 주요 관광지가 잠길 위기에 있음을 알 수 있다.  
+뉴욕의 자유의 여신상, 도쿄 디즈니랜드, 부산 해운대 해수욕장 등, 우리가 꿈꾸던 여행지가 바닷물에 잠길 수 있다.  
+또한 에어컨 시뮬레이터에서 확인했듯, 일상 속 작은 사용도 누적되면 큰 배출로 이어진다.  
 
-    with col2:
-        energy = hours * days * 0.8
-        co2 = round(energy * 0.424, 2)
+## 결론 및 제언  
+바다의 온도가 오르면 교실도 끓는다. 해수면이 오르면 우리의 미래 공간은 줄어든다.  
+하지만 우리는 이 변화를 막을 마지막 세대일 수도 있다.  
+따라서 지금 당장의 작은 실천이 무엇보다 중요하다. 에너지 절약과 탄소 배출 감축은 먼 미래의 이야기가 아니라, 오늘 우리 손에 달려 있다.  
 
-        st.markdown(f"""
-        #### 🧮 결과
-        - 🔌 총 전력 사용량: <span style='font-size:24px; color:orange; font-weight:bold'>{energy:.1f} kWh</span>  
-        - 🌍 CO₂ 배출량: <span style='font-size:24px; color:red; font-weight:bold'>{co2:.1f} kg</span>  
-        """, unsafe_allow_html=True)
+우리가 실천할 수 있는 방안으로는 여름철 에어컨 온도를 26도로 유지하고, 선풍기와 병행하여 사용하며, 대중교통을 더 자주 이용하는 것이다.  
+또한 불필요한 전자기기 플러그를 뽑고, 재사용 가능한 물품을 생활 속에서 습관적으로 사용하는 것도 중요하다.  
+학교나 가정에서는 함께 참여할 수 있는 절약 캠페인을 만들어 작은 성과를 쌓아 나가야 한다.  
+결국, 청소년 한 명의 실천이 모이면 큰 변화를 만들 수 있으며, 그것이 바로 우리의 미래를 지켜낼 가장 확실한 방법이다.
+""")
 
-        st.caption("※ CO₂ 배출량 계산 기준: 한국 전력 평균 배출계수 0.424 kg/kWh")
+st.markdown("## 🌱 에너지 절약 실천 체크리스트")
+col1, col2 = st.columns(2)
+with col1:
+    c1 = st.checkbox("에어컨 온도 26도 유지하기")
+    c2 = st.checkbox("선풍기와 병행 사용하기")
+    c3 = st.checkbox("불필요한 조명 끄기")
+    c4 = st.checkbox("대중교통 이용하기")
+    c5 = st.checkbox("분리수거 철저히 하기")
+with col2:
+    c6 = st.checkbox("사용하지 않는 전자기기 플러그 뽑기")
+    c7 = st.checkbox("냉방 시 문 닫아 효율 높이기")
+    c8 = st.checkbox("계단 이용하기")
+    c9 = st.checkbox("재사용 물품 활용하기")
+    c10 = st.checkbox("텀블러 사용하기")
 
-    st.subheader("🔎 분석 및 시사점")
-    st.markdown("""
-    단 한 대의 에어컨만으로도 여름 방학 기간 동안 상당한 양의 CO₂가 배출됩니다.  
-    이런 작은 습관이 전 세계 수억 명의 청소년과 가정에서 반복된다면, 해수면 상승 속도는 더욱 가속화될 것입니다.  
+checked = sum([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10])
+progress = checked / 10
+st.progress(progress)
 
-    따라서 **에어컨 사용 최소화 + 선풍기 활용** 같은 작은 실천이 모여 지구와 우리의 교실을 지킬 수 있습니다.  
-    """)
-
-# -------------------------------
-# Tab 5: 결론 및 제언
-# -------------------------------
-with tab5:
-    st.header("📌 결론 및 제언")
-
-    st.markdown("""
-    해수온과 해수면 상승은 지구 차원의 기후 문제이자, 우리의 **교실과 일상에 직접 연결된 문제**입니다.  
-    에어컨 사용으로 인한 온실가스 배출은 단순한 전기요금 문제가 아니라, **청소년의 학습권·건강·미래 삶의 공간**까지 위협합니다.  
-
-    따라서 우리는 에어컨 사용을 줄이는 것에서 멈추지 않고,  
-    **기후위기에 대응하는 생활 습관**을 만들어 나가야 합니다.
-    """)
-
-    st.markdown("""
-    ---
-    - **교실 온도 26도 유지 캠페인**  
-    - **에어컨 최소화 & 선풍기 병행 사용**  
-    - **불필요한 전기 소모 줄이기**  
-    - **여름 방학 기간 기후교육 강화**  
-
-    > 청소년의 작은 실천이 **몰디브 해안도 지키고**,  
-    > **우리 교실의 온도도 지킬 수 있습니다.**
-    """)
-
-    st.caption("📚 출처: NASA, KOEM, 뉴스펭귄, 비즈니스포스트, 국립해양조사원, YTN Science")
+if progress == 1:
+    st.success("🎉 모든 실천을 완료했어요! 멋집니다, 지구가 환하게 웃고 있어요!")
+elif progress >= 0.8:
+    st.info("🌟 80% 달성! 거의 다 왔어요, 조금만 더 힘내요!")
+elif progress >= 0.6:
+    st.info("💪 60% 달성! 잘하고 있어요, 꾸준함이 중요해요!")
+elif progress >= 0.4:
+    st.info("✨ 40% 달성! 시작이 반이에요, 계속 실천해봐요!")
+else:
+    st.write("아직 실천이 적지만, 작은 시작이 큰 변화를 만듭니다 🌱")
