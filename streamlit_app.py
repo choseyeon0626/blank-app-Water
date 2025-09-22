@@ -50,65 +50,63 @@ with tab1:
     ]
     sea_df = pd.DataFrame({"연도": years, "해수면 상승(mm)": levels})
 
-    with st.sidebar:
-        st.markdown("## 📊 해수면 데이터 옵션")
-        start_year, end_year = st.slider("기간 선택", 1993, 2023, (2010, 2023))
-        show_trend = st.checkbox("추세선 표시", True)
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.markdown("### 연도 선택")
+        start_year = st.selectbox("시작 연도", options=years, index=years.index(2010))
+        end_year = st.selectbox("종료 연도", options=years, index=len(years)-1)
 
-    filtered_df = sea_df[(sea_df["연도"] >= start_year) & (sea_df["연도"] <= end_year)]
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=filtered_df["연도"],
-        y=filtered_df["해수면 상승(mm)"],
-        mode='lines+markers',
-        line=dict(color='royalblue'),
-        marker=dict(size=8)
-    ))
-    if show_trend:
-        coeffs = pd.Series(filtered_df["해수면 상승(mm)"]).rolling(window=3).mean()
-        fig.add_trace(go.Scatter(
-            x=filtered_df["연도"],
-            y=coeffs,
-            mode='lines',
-            line=dict(color='red', dash='dot'),
-            name="추세선"
-        ))
-
-    fig.update_layout(
-        title=f"{start_year}년 ~ {end_year}년 해수면 상승 추이",
-        xaxis_title="연도",
-        yaxis_title="해수면 상승 (mm)",
-        height=500
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    if start_year > end_year:
+        st.warning("❗ 시작 연도가 종료 연도보다 클 수 없습니다.")
+    else:
+        filtered_df = sea_df[(sea_df["연도"] >= start_year) & (sea_df["연도"] <= end_year)]
+        with col2:
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=filtered_df["연도"],
+                y=filtered_df["해수면 상승(mm)"],
+                mode='lines+markers',
+                line=dict(color='royalblue'),
+                marker=dict(size=8)
+            ))
+            fig.update_layout(
+                title=f"{start_year}년 ~ {end_year}년 해수면 상승 추이",
+                xaxis_title="연도",
+                yaxis_title="해수면 상승 (mm)",
+                height=500
+            )
+            st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("> ✅ **출처**: [NASA Global Mean Sea Level (1993–2023)](https://climate.nasa.gov/vital-signs/sea-level/)")
 
+    st.subheader("🔎 분석 및 시사점")
     st.markdown("""
-    ### 📌 데이터 분석 및 시사점
-    - 1993년 이후 해수면은 꾸준히 상승하고 있으며, 30년 동안 약 **70mm 이상 상승**했다.  
-    - 이는 단순한 수치 증가가 아니라, **세계 해안 도시의 침수 가능성을 높이는 심각한 신호**이다.  
-    - 에어컨 사용을 포함한 과도한 에너지 소비는 온실가스 배출을 가속화하여 결국 해수면 상승을 부추긴다.  
+    지난 30년 동안 해수면은 꾸준히 상승하고 있으며, 단순한 자연 변동이 아니라 인류 활동에 의한 기후변화의 직접적 결과임을 보여줍니다.  
+    특히 2010년 이후 상승 속도가 더욱 가팔라져, 앞으로 해안 도시와 관광지의 생존 가능성에 큰 위협이 되고 있습니다.  
 
-    👉 우리가 지금 당장 전기 사용을 줄이지 않는다면, 여름 피서지는 물론이고 **우리 교실과 삶의 공간**도 위협받게 된다.
+    이는 우리가 **에어컨 사용과 같은 일상적 습관을 바꾸지 않는다면** 머지않아 여름휴가를 떠나는 해변이나 도시는 더 이상 안전한 공간이 아닐 수 있음을 의미합니다.  
     """)
 
 # -------------------------------
 # Tab 2: 세계 도시 위험도
 # -------------------------------
 with tab2:
-    st.header("🌍 세계 주요 도시와 관광지의 위험도")
-
     selected_year = st.slider("🌍 지도에 표시할 연도 선택", min_value=1993, max_value=2023, value=2015)
     selected_level = sea_df.loc[sea_df["연도"] == selected_year, "해수면 상승(mm)"].values[0]
 
     cities = [
-        {"city": "부산", "lat": 35.1796, "lon": 129.0756},
-        {"city": "상하이", "lat": 31.2304, "lon": 121.4737},
-        {"city": "자카르타", "lat": -6.2088, "lon": 106.8456},
-        {"city": "마이애미", "lat": 25.7617, "lon": -80.1918},
-        {"city": "암스테르담", "lat": 52.3676, "lon": 4.9041},
-        {"city": "뉴욕", "lat": 40.7128, "lon": -74.0060}
+        {"city": "부산 (해운대)", "lat": 35.1796, "lon": 129.0756,
+         "img_now": "https://upload.wikimedia.org/wikipedia/commons/5/55/Haeundae_Beach_May_2024.jpg",
+         "img_future": "https://dummyimage.com/800x400/4682b4/ffffff.png&text=부산+해운대+침수+예측"},
+        {"city": "자카르타", "lat": -6.2088, "lon": 106.8456,
+         "img_now": "https://upload.wikimedia.org/wikipedia/commons/9/99/Jakarta_skyline.jpg",
+         "img_future": "https://dummyimage.com/800x400/ff6347/ffffff.png&text=자카르타+침수+예측"},
+        {"city": "마이애미", "lat": 25.7617, "lon": -80.1918,
+         "img_now": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Miami_Beach_aerial_2017.jpg",
+         "img_future": "https://dummyimage.com/800x400/2e8b57/ffffff.png&text=마이애미+침수+예측"},
+        {"city": "암스테르담", "lat": 52.3676, "lon": 4.9041,
+         "img_now": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Amsterdam_Canal_Panorama_2018.jpg",
+         "img_future": "https://dummyimage.com/800x400/daa520/ffffff.png&text=암스테르담+침수+예측"},
     ]
 
     norm = colors.Normalize(vmin=0, vmax=max(levels))
@@ -117,86 +115,55 @@ with tab2:
         rgba = cmap(norm(value))
         return colors.to_hex(rgba)
 
-    m = folium.Map(location=[20, 0], zoom_start=2)
-    for city in cities:
-        color = get_color(selected_level)
-        folium.CircleMarker(
-            location=[city["lat"], city["lon"]],
-            radius=10,
-            color=color,
-            fill=True,
-            fill_color=color,
-            fill_opacity=0.8,
-            popup=f"{city['city']}<br>해수면 상승: {selected_level:.1f} mm"
-        ).add_to(m)
+    col1, col2 = st.columns([2, 3])
+    with col1:
+        st.markdown("### 도시 선택")
+        city_names = [c["city"] for c in cities]
+        selected_city = st.selectbox("위험도 확인할 도시 선택", options=city_names)
 
-    st_data = st_folium(m, width=900, height=550)
+        city_info = next(c for c in cities if c["city"] == selected_city)
+        st.image(city_info["img_now"], caption=f"현재 {city_info['city']} 모습")
+        st.image(city_info["img_future"], caption=f"{selected_city} 침수 예측 (참고 이미지)")
 
-    # 관광지 사진 비교
-    st.markdown("### 🖼️ 도시별 관광지와 해수면 상승 영향")
-    selected_city = st.selectbox(
-        "도시 선택 (관광지 사진 보기)",
-        ["부산", "상하이", "자카르타", "마이애미", "암스테르담", "뉴욕"]
-    )
+    with col2:
+        m = folium.Map(location=[20, 0], zoom_start=2)
+        for city in cities:
+            color = get_color(selected_level)
+            folium.CircleMarker(
+                location=[city["lat"], city["lon"]],
+                radius=10,
+                color=color,
+                fill=True,
+                fill_color=color,
+                fill_opacity=0.8,
+                popup=f"{city['city']}<br>해수면 상승: {selected_level:.1f} mm"
+            ).add_to(m)
 
-    if selected_city == "부산":
-        st.image("https://upload.wikimedia.org/wikipedia/commons/5/55/Haeundae_Beach_May_2024.jpg",
-                 caption="부산 해운대 해변 현재 모습 (출처: 위키피디아)")
-        st.image("https://dummyimage.com/800x400/87ceeb/000000.png&text=부산+해운대+침수+예측+(참고용)",
-                 caption="부산 해운대 침수 가능성 (참고용)")
+        legend_html = """
+        <div style="position: fixed; 
+             bottom: 40px; left: 40px; width: 200px; height: 140px; 
+             border:2px solid grey; z-index:9999; font-size:14px;
+             background-color:white; padding: 10px;">
+        <b>🌊 해수면 상승 위험도</b><br>
+        <span style='color:#08306b;'>●</span> 낮음 (0~20mm)<br>
+        <span style='color:#2b8cbe;'>●</span> 보통 (20~40mm)<br>
+        <span style='color:#fdae61;'>●</span> 높음 (40~60mm)<br>
+        <span style='color:#d73027;'>●</span> 매우 높음 (60mm 이상)
+        </div>
+        """
+        m.get_root().html.add_child(folium.Element(legend_html))
+        st_data = st_folium(m, width=700, height=500)
 
-    elif selected_city == "상하이":
-        st.image("https://upload.wikimedia.org/wikipedia/commons/0/0a/The_Bund_in_Shanghai_at_night.jpg",
-                 caption="상하이 외탄 현재 모습 (출처: 위키피디아)")
-        st.image("https://dummyimage.com/800x400/4682b4/ffffff.png&text=상하이+외탄+침수+예측+(참고용)",
-                 caption="상하이 외탄 침수 가능성 (참고용)")
-
-    elif selected_city == "자카르타":
-        st.image("https://upload.wikimedia.org/wikipedia/commons/a/ab/Fatahillah_Square_Jakarta.jpg",
-                 caption="자카르타 코타 투아 현재 모습 (출처: 위키피디아)")
-        st.image("https://dummyimage.com/800x400/2e8b57/ffffff.png&text=자카르타+구시가지+침수+예측+(참고용)",
-                 caption="자카르타 구시가지 침수 가능성 (참고용)")
-
-    elif selected_city == "마이애미":
-        st.image("https://upload.wikimedia.org/wikipedia/commons/4/45/Miami_Beach_Ocean_Drive.jpg",
-                 caption="마이애미 사우스 비치 현재 모습 (출처: 위키피디아)")
-        st.image("https://dummyimage.com/800x400/ff6347/ffffff.png&text=마이애미+사우스비치+침수+예측+(참고용)",
-                 caption="마이애미 사우스 비치 침수 가능성 (참고용)")
-
-    elif selected_city == "암스테르담":
-        st.image("https://upload.wikimedia.org/wikipedia/commons/2/26/Amsterdam_Canals_-_July_2022.jpg",
-                 caption="암스테르담 운하 현재 모습 (출처: 위키피디아)")
-        st.image("https://dummyimage.com/800x400/1e90ff/ffffff.png&text=암스테르담+운하+침수+예측+(참고용)",
-                 caption="암스테르담 운하 침수 가능성 (참고용)")
-
-    elif selected_city == "뉴욕":
-        st.image("https://upload.wikimedia.org/wikipedia/commons/d/d6/Statue_of_Liberty_7.jpg",
-                 caption="뉴욕 자유의 여신상 현재 모습 (출처: 위키피디아)")
-        st.image("https://dummyimage.com/800x400/708090/ffffff.png&text=뉴욕+자유의여신상+침수+예측+(참고용)",
-                 caption="뉴욕 자유의 여신상 침수 가능성 (참고용)")
-
-    # 분석 및 시사점 (디벨롭)
+    st.subheader("🔎 분석 및 시사점")
     st.markdown("""
-    ### 📊 분석 및 시사점
+    해수면 상승은 단순히 과학 보고서 속 수치가 아니라, 세계 주요 해안 도시와 관광지에 직접적인 위협을 줍니다.  
+    - **부산 해운대**: 대표적 해수욕장으로, 침수 시 지역 경제와 관광산업 직격탄.  
+    - **자카르타**: 이미 도시 일부가 침수되고 있어, 인도네시아 수도 이전 논의까지 진행 중.  
+    - **마이애미**: 세계적 휴양지이자 미국 남부 경제 중심지, 해수면 상승에 매우 취약.  
+    - **암스테르담**: 운하 도시로서, 제방 붕괴 시 도시 전역이 물에 잠길 위험.  
 
-    - 해수면 상승은 단순히 해안선을 잠기게 하는 것이 아니라, **세계적인 관광지와 문화유산을 사라지게 만들 수 있는 심각한 위협**이다.  
-    - 부산 해운대, 상하이 외탄, 마이애미 사우스비치, 암스테르담 운하, 뉴욕 자유의 여신상 등은 단순한 명소가 아니라  
-      **도시의 정체성과 경제를 지탱하는 핵심 자산**이다.  
-
-    ---
-    ### 🌐 우리가 잃을 수 있는 것
-    - **경제적 손실**: 관광 수입 급감, 일자리 상실  
-    - **문화적 손실**: 수백 년간 이어온 도시의 역사와 상징이 침수 위험  
-    - **사회적 손실**: 해안 지역 거주민의 이주, 도시 붕괴 위험  
-
-    ---
-    ### ⚠️ 청소년 세대에게 주는 메시지
-    - 우리가 무심코 켜는 **에어컨 한 대, 몇 시간의 전력 낭비**가  
-      결국은 **살 곳을 줄이고, 즐길 여행지를 빼앗는 결과**로 이어질 수 있다.  
-    - 기후위기는 거창한 문제가 아니라, **곧 우리의 일상과 미래 여름방학 여행지의 문제**이다.  
-
-    👉 지금의 작은 실천(적정 온도 유지, 에어컨 절약, 기후 교육 참여)이  
-    곧 우리의 **삶의 터전과 여행지를 지키는 힘**이 된다.
+    여러분의 **가벼운 에어컨 사용 습관 하나가**, 단순히 집 전기요금이 아니라  
+    미래에 우리가 즐길 수 있는 **휴양지와 여행지의 생존 여부**와 직결됩니다.  
     """)
 
 # -------------------------------
@@ -216,32 +183,30 @@ with tab3:
 # Tab 4: 에어컨 시뮬레이션
 # -------------------------------
 with tab4:
-    st.markdown("가정용 에어컨 **1대**는 1시간 가동 시 약 **0.8kWh**의 전력을 소비합니다.")
-
-    col3, col4 = st.columns(2)
-    with col3:
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.markdown("### 시뮬레이션 옵션")
         hours = st.slider("하루 평균 사용 시간 (시간)", 0, 24, 6)
-    with col4:
         days = st.slider("총 사용 일수 (일)", 1, 90, 30)
 
-    energy = hours * days * 0.8
-    co2 = round(energy * 0.424, 2)
+    with col2:
+        energy = hours * days * 0.8
+        co2 = round(energy * 0.424, 2)
 
-    st.markdown(f"""
-    #### 🧮 결과
-    - 🔌 총 전력 사용량: <span style='font-size:24px; color:orange; font-weight:bold'>{energy:.1f} kWh</span>  
-    - 🌍 CO₂ 배출량: <span style='font-size:24px; color:red; font-weight:bold'>{co2:.1f} kg</span>  
-    """, unsafe_allow_html=True)
+        st.markdown(f"""
+        #### 🧮 결과
+        - 🔌 총 전력 사용량: <span style='font-size:24px; color:orange; font-weight:bold'>{energy:.1f} kWh</span>  
+        - 🌍 CO₂ 배출량: <span style='font-size:24px; color:red; font-weight:bold'>{co2:.1f} kg</span>  
+        """, unsafe_allow_html=True)
 
-    st.caption("※ CO₂ 배출량 계산 기준: 한국 전력 평균 배출계수 0.424 kg/kWh")
+        st.caption("※ CO₂ 배출량 계산 기준: 한국 전력 평균 배출계수 0.424 kg/kWh")
 
+    st.subheader("🔎 분석 및 시사점")
     st.markdown("""
-    ### 📌 분석 및 시사점
-    - 단 한 대의 에어컨만 사용해도 수십 kg의 CO₂가 배출된다.  
-    - 여름철 전국적으로 수백만 대가 동시에 사용되면, 그 양은 기하급수적으로 증가한다.  
-    - 이는 곧 해수온 상승과 해수면 상승을 가속화하는 요인이 된다.  
+    단 한 대의 에어컨만으로도 여름 방학 기간 동안 상당한 양의 CO₂가 배출됩니다.  
+    이런 작은 습관이 전 세계 수억 명의 청소년과 가정에서 반복된다면, 해수면 상승 속도는 더욱 가속화될 것입니다.  
 
-    👉 우리의 작은 절약이 곧, **몰디브 해안도 지키고 우리 교실의 온도도 지킬 수 있는 실천**이다.
+    따라서 **에어컨 사용 최소화 + 선풍기 활용** 같은 작은 실천이 모여 지구와 우리의 교실을 지킬 수 있습니다.  
     """)
 
 # -------------------------------
